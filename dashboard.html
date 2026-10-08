@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Inicio - Sedería Georgi</title>
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">SG GEORGI</div>
+    <div class="nav-item active">🏠 Inicio</div>
+    <div class="nav-item">👤 Clientes</div>
+    <div class="nav-item">🛒 Pedidos</div>
+    <div class="nav-item">🚚 Proveedores</div>
+    <div class="nav-item">🧵 Stock</div>
+  </aside>
+
+  <main class="main">
+    <div class="main-header">
+      <div>
+        <h1 id="saludo">¡Buenos días!</h1>
+        <p>Bienvenida al sistema de gestión de Sedería Giorgi</p>
+      </div>
+      <div class="user-chip">
+        <div id="userName">Marita Had</div>
+        <div class="role">Administradora</div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="label">👤 Clientes</div>
+        <div class="value" id="statClientes">…</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">🛒 Pedidos Pendientes</div>
+        <div class="value" id="statPedidos">…</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">🧵 Productos en stock</div>
+        <div class="value" id="statStock">…</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">⚠️ Stock bajo</div>
+        <div class="value" id="statStockBajo">…</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Pedidos próximos a entregar</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>Entrega</th>
+            <th>Estado</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="pedidosBody">
+          <tr class="loading-row"><td colspan="5">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>
