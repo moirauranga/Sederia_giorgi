@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pedidos · Sedería Georgi</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="app">
+  <aside class="sidebar">
+    <div class="logo-box"><img class="logo-img" src="imagenes/sederia.jpeg" alt="Sedería Georgi"></div>
+    <nav class="nav">
+      <a href="dashboard.html"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg><span>Inicio</span></a>
+      <a href="clientes.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>Clientes</span></a>
+      <a href="pedidos.html" class="on"><svg viewBox="0 0 24 24"><path d="M3 4h3l2.5 11h10l2-8H7"/><circle cx="10" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg><span>Pedidos</span></a>
+      <a href="proveedores.html"><svg viewBox="0 0 24 24"><path d="M2 6h12v10H2zM14 9h4l4 4v3h-8"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg><span>Proveedores</span></a>
+      <a href="stock.html"><svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10"/></svg><span>Stock</span></a>
+    </nav>
+    <button class="cfg" id="cfgBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2L10 21h4l.6-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg><span>Configuración</span></button>
+  </aside>
+  <main class="main">
+    <header class="top">
+      <div><h2 id="pageTitle">Pedidos</h2><p>Próximamente</p></div>
+      <div class="user"><span>🔔</span><div><span id="uName"></span><small id="uRole"></small></div><button class="act" id="logout">Salir</button></div>
+    </header>
+    <div class="content">
+      <section class="view on"><div class="panel empty">Esta sección estará disponible próximamente.</div></section>
+    </div>
+  </main>
+</div>
+<script src="js/api.js"></script>
+<script src="js/layout.js"></script>
+</body>
+</html>

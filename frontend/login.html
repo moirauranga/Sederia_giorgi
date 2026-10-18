@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Iniciar sesión · Sedería Georgi</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<section id="login">
+  <div class="side"></div>
+  <form class="box" id="loginForm" novalidate>
+    <img class="logo-img" src="imagenes/sederia.jpeg" alt="Sedería Georgi">
+    <h1>Iniciar sesión</h1>
+    <div class="field"><input class="input" id="user" placeholder="Usuario" autocomplete="username"></div>
+    <div class="field"><input class="input" id="pass" type="password" placeholder="Contraseña" autocomplete="current-password"></div>
+    <label class="check"><input type="checkbox" id="remember"> Recordarme</label>
+    <div class="msg" id="loginMsg" role="alert"></div>
+    <button class="btn block" id="loginBtn">Ingresar</button>
+    <a class="link" href="#" id="forgot">¿Olvidaste tu contraseña?</a>
+  </form>
+  <div class="side"></div>
+</section>
+<script src="js/api.js"></script>
+<script src="js/login.js"></script>
+</body>
+</html>
