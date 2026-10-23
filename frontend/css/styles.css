@@ -9,10 +9,12 @@
    6. Tarjetas y tablas
    7. Clientes (búsqueda, paginación)
    8. Formulario
-   9. Aviso (toast)
-   10. Tablet
-   11. Celular
-   12. Modo oscuro (opcional, se puede borrar)
+   9. Pedidos (crear pedido y detalle)
+   10. Aviso (toast)
+   11. Tablet
+   12. Celular
+   13. Impresión
+   14. Modo oscuro (opcional, se puede borrar)
    ===================================================== */
 
 
@@ -446,6 +448,10 @@ td {
   background: var(--prep);
 }
 
+.pill.Entregado {
+  background: var(--rose);
+}
+
 /* Texto cuando no hay datos */
 .empty {
   text-align: center;
@@ -568,7 +574,126 @@ td {
 
 
 /* =====================================================
-   9. AVISO (TOAST)
+   9. PEDIDOS (CREAR PEDIDO Y DETALLE)
+   ===================================================== */
+
+/* Tarjetas apiladas (crear pedido y detalle) */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 860px;
+}
+
+.stack .form {
+  max-width: none;
+}
+
+/* Tabla de productos */
+.ptable {
+  min-width: 640px;
+}
+
+.ptable td {
+  padding: 8px 10px;
+}
+
+.ptable .input {
+  padding: 6px 8px;
+}
+
+.ptable .p-sub {
+  white-space: nowrap;
+}
+
+/* Botón "+ Agregar producto" */
+.btn.add {
+  margin-top: 14px;
+  background: var(--rose);
+  color: var(--ink);
+}
+
+.btn.add:hover {
+  background: var(--line);
+}
+
+/* Total del pedido */
+.total-row {
+  text-align: right;
+  font-size: 14px;
+  margin-top: 14px;
+}
+
+.total-row b {
+  margin-left: 10px;
+  font-size: 18px;
+}
+
+/* Detalle: resumen (cliente / fecha / total) */
+.summary {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 0;
+  padding: 0;
+}
+
+.summary > div {
+  padding: 18px 22px;
+}
+
+.summary > div + div {
+  border-left: 1px solid var(--line);
+}
+
+.summary small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.summary b {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.sum-client {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.avatar svg {
+  width: 44px;
+  height: 44px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Detalle: botones Editar / Imprimir + total */
+.detail-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.detail-actions .btn + .btn {
+  margin-left: 8px;
+}
+
+.detail-actions .total-row {
+  margin: 0;
+}
+
+
+/* =====================================================
+   10. AVISO (TOAST)
    ===================================================== */
 .toast {
   position: fixed;
@@ -585,7 +710,7 @@ td {
 
 
 /* =====================================================
-   10. TABLET (pantallas de hasta 1024 px)
+   11. TABLET (pantallas de hasta 1024 px)
    El menú queda angosto, solo con íconos
    ===================================================== */
 @media (max-width: 1024px) {
@@ -629,7 +754,7 @@ td {
 
 
 /* =====================================================
-   11. CELULAR (pantallas de hasta 640 px)
+   12. CELULAR (pantallas de hasta 640 px)
    El menú pasa a una barra inferior
    ===================================================== */
 @media (max-width: 640px) {
@@ -723,11 +848,39 @@ td {
   .pager {
     justify-content: center;
   }
+
+  /* Detalle de pedido: resumen en una columna */
+  .summary {
+    grid-template-columns: 1fr;
+  }
+
+  .summary > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
 }
 
 
 /* =====================================================
-   12. MODO OSCURO (opcional)
+   13. IMPRESIÓN
+   Al imprimir el detalle del pedido: sin menú ni botones
+   ===================================================== */
+@media print {
+  .sidebar,
+  .user,
+  .detail-actions .btn {
+    display: none !important;
+  }
+
+  #app {
+    display: block;
+    padding: 0;
+  }
+}
+
+
+/* =====================================================
+   14. MODO OSCURO (opcional)
    Se activa solo si la computadora está en modo oscuro.
    Si no lo querés, borrá todo este bloque.
    ===================================================== */
