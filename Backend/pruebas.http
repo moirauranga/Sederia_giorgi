@@ -1,0 +1,47 @@
+### Pruebas de la API con la extensión "REST Client" de VS Code
+### (en cada bloque aparece un link "Send Request" arriba de la línea GET/POST/DELETE)
+
+@url = http://localhost:3000/api
+
+### 1. Comprobar que el servidor anda
+GET {{url}}/health
+
+### 2. Login (copiá el "token" de la respuesta y pegalo en la variable de abajo)
+POST {{url}}/auth/login
+Content-Type: application/json
+
+{
+  "usuario": "marita",
+  "password": "MiClave123"
+}
+
+### Pegá acá el token que devolvió el login
+@token = PEGAR_TOKEN_AQUI
+
+### 3. Listar clientes
+GET {{url}}/clientes
+Authorization: Bearer {{token}}
+
+### 4. Crear cliente
+POST {{url}}/clientes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombre": "Lucía",
+  "apellido": "Pérez",
+  "telefono": "2364123456",
+  "email": "lucia@mail.com",
+  "dni": "30123456",
+  "calle": "Belgrano",
+  "numero": "450",
+  "localidad": "Pergamino",
+  "obs": "Cliente de prueba"
+}
+
+### 5. Eliminar cliente (cambiá el 1 por el id que quieras borrar)
+DELETE {{url}}/clientes/1
+Authorization: Bearer {{token}}
+
+### 6. Sin token → tiene que devolver 401
+GET {{url}}/clientes
