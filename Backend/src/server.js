@@ -18,6 +18,8 @@ app.use(express.json());               // permite leer el JSON que manda el nave
 app.get("/api/health", (req, res) => res.json({ ok: true }));   // para comprobar que el servidor está andando
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/clientes", require("./routes/clientes"));
+app.use("/api/pedidos", require("./routes/pedidos"));
+app.use("/api/productos", require("./routes/productos"));
 app.use("/api", (req, res) => res.status(404).json({ ok: false, error: "Ruta no encontrada." }));
 
 // Sitio: si existe la carpeta ../frontend (estructura del repositorio), la sirve desde acá

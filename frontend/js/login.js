@@ -9,11 +9,12 @@ $("#loginForm").addEventListener("submit", async e => {
   if (!u || !p) { m.textContent = "Completá usuario y contraseña."; return; }
 
   $("#loginBtn").disabled = true; m.textContent = "";
-  const res = await api.login(u, p);          // ← acá se conecta el backend
+  const res = await api.login(u, p);
   $("#loginBtn").disabled = false;
   if (!res.ok) { m.textContent = res.error; return; }
 
-  session.set(res.user, $("#remember").checked);
+  // Guardamos el token junto con el nombre y el rol
+  session.set({ ...res.user, token: res.token }, $("#remember").checked);
   location.href = "dashboard.html";
 });
 

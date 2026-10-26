@@ -1,10 +1,9 @@
-/* api.js — datos y utilidades compartidas por todas las pantallas.
-   Cada función de `api` es el punto donde se conectará el backend (fetch). */
+/* api.js — utilidades compartidas y conexión con el backend (/api/...)
+   El token JWT se guarda en el navegador y se envía en cada pedido. */
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const delay = v => new Promise(r => setTimeout(() => r(v), 250));
 
 function toast(t) {
   const d = document.createElement("div");
@@ -13,27 +12,21 @@ function toast(t) {
   setTimeout(() => d.remove(), 2600);
 }
 
-/* Almacenamiento local (solo para la demo, se reemplaza por el backend) */
-const store = {
-  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
-  del(k)    { try { localStorage.removeItem(k); } catch (e) {} }
-};
+/* Formatos compartidos (pedidos) */
+const money = n => "$" + Number(n || 0).toLocaleString("es-AR");                 // 45000 → $45.000
+const fecha = s => { const p = String(s || "").slice(0, 10).split("-"); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : ""; }; // 2026-10-15 → 15/10/2026
+const nroPedido = p => "#" + String(p.numero || p.id || 0).padStart(4, "0");     // 16 → #0016
 
-/* Sesión: "Recordarme" la guarda en localStorage, si no, solo dura mientras esté abierta la pestaña */
+/* Sesión: se guarda en el navegador el token y los datos del usuario.
+   "Recordarme" marcado → localStorage (queda guardado)
+   "Recordarme" sin marcar → sessionStorage (se borra al cerrar la pestaña) */
 const session = {
   get() { try { return JSON.parse(sessionStorage.getItem("session") || localStorage.getItem("session") || "null"); } catch (e) { return null; } },
-  set(user, remember) { try { (remember ? localStorage : sessionStorage).setItem("session", JSON.stringify(user)); } catch (e) {} },
+  set(data, remember) { try { (remember ? localStorage : sessionStorage).setItem("session", JSON.stringify(data)); } catch (e) {} },
   clear() { try { sessionStorage.removeItem("session"); localStorage.removeItem("session"); } catch (e) {} }
 };
 
-/* ---- Datos de prueba (borrar cuando haya base de datos) ---- */
-const seed = [
-  {id:1,nombre:"María",apellido:"López",telefono:"2364563258",calle:"San Martín",numero:"120",localidad:"Pergamino",pedidos:2},
-  {id:2,nombre:"Ana",apellido:"García",telefono:"2364589621",calle:"",numero:"",localidad:"",pedidos:0},
-  {id:3,nombre:"Florencia",apellido:"Fernán",telefono:"2364594083",calle:"",numero:"",localidad:"",pedidos:1},
-  {id:4,nombre:"Martina",apellido:"Vische",telefono:"2364785412",calle:"",numero:"",localidad:"",pedidos:0}
-];
+/* Pedidos de ejemplo del dashboard (se conectan cuando armemos Pedidos) */
 const orders = [
   ["#0001","Moira Uranga","15/10/2026","Listo","$45.000"],
   ["#0016","Francisco Araus","17/10/2026","Pendiente","$17.000"],
@@ -41,24 +34,63 @@ const orders = [
   ["#0015","Celeste Belloso","21/11/2026","En preparación","$150.000"]
 ];
 
-/* ---- API (mock) ---- */
+/* Productos de ejemplo para "Crear pedido".
+   Se usan SOLO si el backend todavía no tiene /productos (cuando armemos Stock, se reemplazan). */
+const productosEjemplo = [
+  { id: 1, nombre: "Gabardina", colores: ["Beige", "Negro", "Azul"], precio: 5500 },
+  { id: 2, nombre: "Algodón",   colores: ["Blanca", "Crema", "Gris"], precio: 3500 },
+  { id: 3, nombre: "Lino",      colores: ["Natural", "Blanco", "Verde"], precio: 7000 }
+];
+
+/* Función base: manda el pedido al servidor y devuelve { ok, ...datos } o { ok:false, error } */
+async function request(method, url, body) {
+  try {
+    // Armamos los headers; si hay sesión, mandamos el token en cada pedido
+    const headers = {};
+    if (body) headers["Content-Type"] = "application/json";
+    const ses = session.get();
+    if (ses && ses.token) headers["Authorization"] = "Bearer " + ses.token;
+
+    const res = await fetch("http://localhost:3000/api" + url, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (res.status === 401 && url !== "/auth/login") {      // sesión vencida → al login
+      session.clear();
+      location.replace("login.html");
+      return { ok: false, error: "Sesión vencida." };
+    }
+    return res.ok ? { ok: true, ...data } : { ok: false, error: data.error || "Error del servidor." };
+  } catch (e) {
+    return { ok: false, error: "No se pudo conectar con el servidor." };
+  }
+}
+
 const api = {
-  async login(user, pass) { /* TODO: POST /auth/login */
-    if (user === "admin" && pass === "1234")
-      return delay({ ok: true, user: { name: "Marita Had", role: "Administradora" }, token: "demo" });
-    return delay({ ok: false, error: "Usuario o contraseña incorrectos." });
+  login: (usuario, password) => request("POST", "/auth/login", { usuario, password }), //inicio de sesion
+
+  async getClients() { //muestra los clientes en la tabla de clientes
+    const r = await request("GET", "/clientes");
+    if (!r.ok) { toast(r.error); return []; }
+    return r.clientes;
   },
-  async getClients() { /* TODO: GET /clientes */
-    return delay(store.get("clientes", seed));
+  createClient: data => request("POST", "/clientes", data), // crea un cliente nuevo
+  deleteClient: id => request("DELETE", "/clientes/" + id), // elimina un cliente
+
+  async getOrders() { //muestra los pedidos en la tabla de pedidos
+    const r = await request("GET", "/pedidos");
+    if (!r.ok) { toast(r.error); return []; }
+    return r.pedidos;
   },
-  async createClient(c) { /* TODO: POST /clientes */
-    const list = store.get("clientes", seed);
-    if (list.some(x => x.dni && x.dni === c.dni)) return delay({ ok: false, error: "Ya existe un cliente con ese DNI/CUIT." });
-    c.id = Date.now(); c.pedidos = 0; list.push(c); store.set("clientes", list);
-    return delay({ ok: true, client: c });
-  },
-  async deleteClient(id) { /* TODO: DELETE /clientes/:id */
-    store.set("clientes", store.get("clientes", seed).filter(c => c.id !== id));
-    return delay({ ok: true });
+  getOrder: id => request("GET", "/pedidos/" + id),          // trae un pedido con sus productos (detalle)
+  createOrder: data => request("POST", "/pedidos", data),    // crea un pedido nuevo
+  deleteOrder: id => request("DELETE", "/pedidos/" + id),    // elimina un pedido
+
+  async getProducts() { //productos para el formulario de crear pedido (con ejemplo si el backend aún no los tiene)
+    const r = await request("GET", "/productos");
+    return r.ok && Array.isArray(r.productos) && r.productos.length ? r.productos : productosEjemplo;
   }
 };
