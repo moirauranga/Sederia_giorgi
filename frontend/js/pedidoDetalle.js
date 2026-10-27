@@ -1,10 +1,19 @@
 /* pedidoDetalle.js — detalle de un pedido (pedidoDetalle.html?id=1) */
+const id = +new URLSearchParams(location.search).get("id");
+if (!id) location.replace("pedidos.html");
+
 $("#printBtn").addEventListener("click", () => window.print());
-$("#editBtn").addEventListener("click", () => toast("Editar pedido: próximamente"));
+$("#editBtn").addEventListener("click", () => { location.href = "crearPedido.html?id=" + id; }); //abre el formulario con este pedido cargado
+$("#delBtn").addEventListener("click", async () => { //elimina el pedido y vuelve al listado
+  if (!confirm("¿Eliminar este pedido?")) return;
+  const r = await api.deleteOrder(id);
+  if (!r.ok) { $("#dMsg").textContent = r.error; return; }
+  toast("Pedido eliminado");
+  setTimeout(() => location.href = "pedidos.html", 700);
+});
 
 (async function () {
-  const id = +new URLSearchParams(location.search).get("id");
-  if (!id) { location.replace("pedidos.html"); return; }
+  if (!id) return;
 
   const r = await api.getOrder(id);
   if (!r.ok) { $("#dMsg").textContent = r.error; return; }

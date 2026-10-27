@@ -89,8 +89,9 @@ const api = {
   createOrder: data => request("POST", "/pedidos", data),    // crea un pedido nuevo
   deleteOrder: id => request("DELETE", "/pedidos/" + id),    // elimina un pedido
 
-  async getProducts() { //productos para el formulario de crear pedido (con ejemplo si el backend aún no los tiene)
-    const r = await request("GET", "/productos");
-    return r.ok && Array.isArray(r.productos) && r.productos.length ? r.productos : productosEjemplo;
-  }
+  async getProducts() {
+  const r = await request("GET", "/productos");
+  if (!r.ok) { toast(r.error); return []; }
+  return r.productos;
+}
 };

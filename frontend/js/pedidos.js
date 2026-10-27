@@ -21,7 +21,7 @@ function renderOrders() { //muestra los pedidos en la tabla
         <td>${esc(fecha(p.fecha_entrega))}</td>
         <td><span class="pill ${p.estado === "En preparación" ? "prep" : esc(p.estado)}">${esc(p.estado)}</span></td>
         <td>${money(p.total)}</td>
-        <td><a class="act" href="pedidoDetalle.html?id=${+p.id}">Ver</a><button class="act" data-del="${+p.id}">Eliminar</button></td></tr>`).join("")
+        <td><a class="act" href="pedidoDetalle.html?id=${+p.id}">Ver</a><a class="act" href="crearPedido.html?id=${+p.id}">Editar</a><button class="act" data-del="${+p.id}">Eliminar</button></td></tr>`).join("")
     : `<tr><td colspan="6" class="empty">No se encontraron pedidos.</td></tr>`;
 
   //crea botones de paginacion
