@@ -89,9 +89,51 @@ const api = {
   createOrder: data => request("POST", "/pedidos", data),    // crea un pedido nuevo
   deleteOrder: id => request("DELETE", "/pedidos/" + id),    // elimina un pedido
 
+ 
   async getProducts() {
-  const r = await request("GET", "/productos");
-  if (!r.ok) { toast(r.error); return []; }
-  return r.productos;
-}
+    const r = await request("GET", "/productos");
+    if (!r.ok) {
+      toast(r.error);
+      return [];
+    }
+    return r.productos;
+  },
+
+  // Obtener todos los productos y sus cantidades disponibles
+async getStock() {
+    const r = await request("GET", "/stock");
+
+    if (!r.ok) {
+        toast(r.error);
+        return [];
+    }
+
+    return r.stock;
+},
+
+  // PROVEEDORES
+
+  // Obtener todos los proveedores
+  async getProviders() {
+    const r = await request("GET", "/proveedores");
+
+    if (!r.ok) {
+      toast(r.error);
+      return [];
+    }
+
+    return r.proveedores;
+  },
+
+  // Registrar un proveedor nuevo
+  createProvider: data => request("POST", "/proveedores", data),
+
+  // Modificar un proveedor existente
+  updateProvider: (id, data) =>
+    request("PUT", "/proveedores/" + id, data),
+
+  // Eliminar un proveedor
+  deleteProvider: id =>
+    request("DELETE", "/proveedores/" + id)
 };
+

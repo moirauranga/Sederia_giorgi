@@ -4,7 +4,7 @@ const db = require("../db");
 // Estados permitidos para un pedido
 const ESTADOS = ["Pendiente", "En preparación", "Listo", "Entregado"];
 
-// Manejar errores relacionados con tablas o columnas
+// Manejar errores de tablas o columnas
 function fallo(err, res, next) {
     if (
         err &&
@@ -24,7 +24,7 @@ function fallo(err, res, next) {
     next(err);
 }
 
-// Validar los datos recibidos desde el formulario
+// Validar los datos recibidos del formulario
 function validar(b, conEstado) {
     const cliente_id = Number(b.cliente_id);
     const fecha = String(b.fecha_entrega || "").trim();
@@ -60,26 +60,32 @@ function validar(b, conEstado) {
     const productos = [];
 
     for (const i of items) {
-        const it = {
-            producto_id: Number(i.producto_id),
-            cantidad: Number(i.cantidad),
-            precio: Number(i.precio)
-        };
+        const producto_id = Number(i.producto_id);
+        const cantidad = Number(i.cantidad);
+        const precio = Number(i.precio);
+
+        // Aceptar cantidades con hasta dos decimales
+        const cantidadRedondeada = Math.round(cantidad * 100) / 100;
 
         if (
-            !Number.isInteger(it.producto_id) ||
-            it.producto_id < 1 ||
-            !Number.isInteger(it.cantidad) ||
-            it.cantidad < 1 ||
-            !Number.isFinite(it.precio) ||
-            it.precio <= 0
+            !Number.isInteger(producto_id) ||
+            producto_id < 1 ||
+            !Number.isFinite(cantidad) ||
+            cantidad <= 0 ||
+            Math.abs(cantidad - cantidadRedondeada) > 0.000001 ||
+            !Number.isFinite(precio) ||
+            precio <= 0
         ) {
             return {
-                error: "Revisá los productos: producto, color, cantidad y precio son obligatorios."
+                error: "Revisá los productos, colores, cantidades y precios."
             };
         }
 
-        productos.push(it);
+        productos.push({
+            producto_id: producto_id,
+            cantidad: cantidadRedondeada,
+            precio: precio
+        });
     }
 
     return {
@@ -92,7 +98,7 @@ function validar(b, conEstado) {
     };
 }
 
-// Verificar el cliente y los colores seleccionados
+// Validar el cliente y los colores elegidos
 async function preparar(body, conEstado) {
     const resultado = validar(body, conEstado);
 
@@ -102,7 +108,6 @@ async function preparar(body, conEstado) {
 
     const pedido = resultado.pedido;
 
-    // Comprobar que exista el cliente
     const [clientes] = await db.execute(
         "SELECT id FROM clientes WHERE id = ?",
         [pedido.cliente_id]
@@ -112,12 +117,10 @@ async function preparar(body, conEstado) {
         return { error: "El cliente no existe." };
     }
 
-    // Obtener los identificadores de colores sin repetirlos
     const ids = [
         ...new Set(pedido.productos.map(p => p.producto_id))
     ];
 
-    // Buscar las variantes en producto_color
     const [filas] = await db.execute(
         `SELECT
             pc.id AS idcolor,
@@ -130,7 +133,6 @@ async function preparar(body, conEstado) {
         ids
     );
 
-    // Asociar cada variante con el nombre de la tela y su color
     const variantes = new Map(
         filas.map(f => [
             Number(f.idcolor),
@@ -141,12 +143,10 @@ async function preparar(body, conEstado) {
         ])
     );
 
-    // Comprobar que existan todos los colores seleccionados
     if (ids.some(id => !variantes.has(id))) {
         return { error: "Algún producto o color no existe." };
     }
 
-    // Calcular el total del pedido
     const total = Math.round(
         pedido.productos.reduce(
             (suma, p) => suma + p.cantidad * p.precio,
@@ -161,7 +161,137 @@ async function preparar(body, conEstado) {
     };
 }
 
-// Guardar los productos incluidos en un pedido
+// Sumar las cantidades de cada variante
+function agruparCantidades(productos) {
+    const cantidades = new Map();
+
+    for (const p of productos) {
+        const id = Number(p.producto_id);
+        const anterior = cantidades.get(id) || 0;
+
+        cantidades.set(
+            id,
+            Math.round((anterior + Number(p.cantidad)) * 100) / 100
+        );
+    }
+
+    return cantidades;
+}
+
+// Calcular cuánto hay que descontar o devolver
+function calcularDiferencias(nuevos, anteriores) {
+    const diferencias = new Map();
+
+    for (const [id, cantidad] of nuevos) {
+        diferencias.set(id, cantidad);
+    }
+
+    for (const [id, cantidad] of anteriores) {
+        const diferencia = (diferencias.get(id) || 0) - cantidad;
+
+        if (Math.abs(diferencia) < 0.000001) {
+            diferencias.delete(id);
+        } else {
+            diferencias.set(
+                id,
+                Math.round(diferencia * 100) / 100
+            );
+        }
+    }
+
+    return diferencias;
+}
+
+// Ajustar el stock dentro de una transacción
+// Una diferencia positiva descuenta stock.
+// Una diferencia negativa devuelve stock.
+async function ajustarStock(conn, diferencias, variantes) {
+    const ids = [...diferencias.keys()].sort((a, b) => a - b);
+
+    for (const id of ids) {
+        const diferencia = diferencias.get(id);
+
+        if (Math.abs(diferencia) < 0.000001) {
+            continue;
+        }
+
+        const [filas] = await conn.execute(
+            `SELECT cantidad
+             FROM stock
+             WHERE producto_color_id = ?
+             FOR UPDATE`,
+            [id]
+        );
+
+        // Si falta el registro, no se puede descontar stock.
+        if (filas.length === 0) {
+            if (diferencia > 0) {
+                const variante = variantes.get(id);
+
+                const nombre = variante
+                    ? variante.nombre + " - " + variante.color
+                    : "Producto " + id;
+
+                const error = new Error(
+                    "No hay stock registrado para " + nombre +
+                    ". Cargá primero los metros disponibles."
+                );
+
+                error.status = 400;
+                throw error;
+            }
+
+            // Si se deben devolver metros y el registro ya no existe,
+            // se vuelve a crear con la cantidad correspondiente.
+            await conn.execute(
+                `INSERT INTO stock (producto_color_id, cantidad)
+                 VALUES (?, ?)`,
+                [id, Math.abs(diferencia)]
+            );
+
+            continue;
+        }
+
+        const disponible = Number(filas[0].cantidad);
+
+        if (diferencia > 0) {
+            // Verificar que alcance el stock disponible
+            if (disponible + 0.000001 < diferencia) {
+                const variante = variantes.get(id);
+
+                const nombre = variante
+                    ? variante.nombre + " - " + variante.color
+                    : "Producto " + id;
+
+                const error = new Error(
+                    "Stock insuficiente para " + nombre +
+                    ". Disponible: " + disponible.toFixed(2) +
+                    " m; solicitado: " + diferencia.toFixed(2) + " m."
+                );
+
+                error.status = 400;
+                throw error;
+            }
+
+            await conn.execute(
+                `UPDATE stock
+                 SET cantidad = cantidad - ?
+                 WHERE producto_color_id = ?`,
+                [diferencia, id]
+            );
+        } else {
+            // Devolver los metros que ya no se necesitan
+            await conn.execute(
+                `UPDATE stock
+                 SET cantidad = cantidad + ?
+                 WHERE producto_color_id = ?`,
+                [Math.abs(diferencia), id]
+            );
+        }
+    }
+}
+
+// Guardar los productos del pedido
 async function guardarItems(conn, pedidoId, pedido, variantes) {
     for (const p of pedido.productos) {
         const variante = variantes.get(p.producto_id);
@@ -268,6 +398,7 @@ async function obtener(req, res, next) {
 
         pedido.productos = items.map(i => ({
             ...i,
+            cantidad: Number(i.cantidad),
             precio: Number(i.precio)
         }));
 
@@ -280,7 +411,7 @@ async function obtener(req, res, next) {
     }
 }
 
-// CREAR PEDIDO
+// CREAR PEDIDO Y DESCONTAR STOCK
 async function crear(req, res, next) {
     let conn;
 
@@ -299,9 +430,9 @@ async function crear(req, res, next) {
         const total = resultado.total;
 
         conn = await db.getConnection();
-
         await conn.beginTransaction();
 
+        // Insertar el pedido
         const [r] = await conn.execute(
             `INSERT INTO pedidos
                 (cliente_id, total, fecha_entrega)
@@ -309,7 +440,22 @@ async function crear(req, res, next) {
             [pedido.cliente_id, total, pedido.fecha_entrega]
         );
 
+        // Descontar las cantidades solicitadas
+        const nuevasCantidades = agruparCantidades(pedido.productos);
+        await ajustarStock(
+            conn,
+            nuevasCantidades,
+            variantes
+        );
+
+        // Guardar los productos del pedido
         await guardarItems(conn, r.insertId, pedido, variantes);
+
+        // Marcar que el pedido ya descontó stock
+        await conn.execute(
+            "UPDATE pedidos SET stock_actualizado = 1 WHERE id = ?",
+            [r.insertId]
+        );
 
         await conn.commit();
 
@@ -322,6 +468,13 @@ async function crear(req, res, next) {
             await conn.rollback().catch(() => {});
         }
 
+        if (err.status) {
+            return res.status(err.status).json({
+                ok: false,
+                error: err.message
+            });
+        }
+
         fallo(err, res, next);
     } finally {
         if (conn) {
@@ -330,7 +483,7 @@ async function crear(req, res, next) {
     }
 }
 
-// MODIFICAR PEDIDO
+// MODIFICAR PEDIDO Y AJUSTAR STOCK
 async function modificar(req, res, next) {
     let conn;
 
@@ -338,18 +491,6 @@ async function modificar(req, res, next) {
         const id = Number(req.params.id);
 
         if (!Number.isInteger(id) || id < 1) {
-            return res.status(404).json({
-                ok: false,
-                error: "Pedido no encontrado."
-            });
-        }
-
-        const [existentes] = await db.execute(
-            "SELECT id FROM pedidos WHERE id = ?",
-            [id]
-        );
-
-        if (!existentes.length) {
             return res.status(404).json({
                 ok: false,
                 error: "Pedido no encontrado."
@@ -370,15 +511,64 @@ async function modificar(req, res, next) {
         const total = resultado.total;
 
         conn = await db.getConnection();
-
         await conn.beginTransaction();
 
+        // Bloquear el pedido mientras se modifica
+        const [existentes] = await conn.execute(
+            `SELECT id, stock_actualizado
+             FROM pedidos
+             WHERE id = ?
+             FOR UPDATE`,
+            [id]
+        );
+
+        if (!existentes.length) {
+            await conn.rollback();
+
+            return res.status(404).json({
+                ok: false,
+                error: "Pedido no encontrado."
+            });
+        }
+
+        // Obtener los productos que tenía el pedido
+        const [itemsAnteriores] = await conn.execute(
+            `SELECT producto_id, cantidad
+             FROM pedido_items
+             WHERE pedido_id = ?`,
+            [id]
+        );
+
+        let cantidadesAnteriores = new Map();
+
+        // Solo contar las cantidades anteriores si habían descontado stock
+        if (Number(existentes[0].stock_actualizado) === 1) {
+            cantidadesAnteriores = agruparCantidades(
+                itemsAnteriores.map(i => ({
+                    producto_id: Number(i.producto_id),
+                    cantidad: Number(i.cantidad)
+                }))
+            );
+        }
+
+        const cantidadesNuevas = agruparCantidades(pedido.productos);
+
+        const diferencias = calcularDiferencias(
+            cantidadesNuevas,
+            cantidadesAnteriores
+        );
+
+        // Descontar o devolver la diferencia
+        await ajustarStock(conn, diferencias, variantes);
+
+        // Actualizar los datos del pedido
         await conn.execute(
             `UPDATE pedidos
              SET cliente_id = ?,
                  estado = ?,
                  total = ?,
-                 fecha_entrega = ?
+                 fecha_entrega = ?,
+                 stock_actualizado = 1
              WHERE id = ?`,
             [
                 pedido.cliente_id,
@@ -389,6 +579,7 @@ async function modificar(req, res, next) {
             ]
         );
 
+        // Reemplazar los productos del pedido
         await conn.execute(
             "DELETE FROM pedido_items WHERE pedido_id = ?",
             [id]
@@ -404,6 +595,13 @@ async function modificar(req, res, next) {
             await conn.rollback().catch(() => {});
         }
 
+        if (err.status) {
+            return res.status(err.status).json({
+                ok: false,
+                error: err.message
+            });
+        }
+
         fallo(err, res, next);
     } finally {
         if (conn) {
@@ -412,8 +610,58 @@ async function modificar(req, res, next) {
     }
 }
 
-// ELIMINAR PEDIDO
+// MODIFICAR SOLAMENTE EL ESTADO DE UN PEDIDO
+async function actualizarEstado(req, res, next) {
+    try {
+        const id = Number(req.params.id);
+        const estado = String(req.body.estado || "").trim();
+
+        // Comprobar que el ID sea válido
+        if (!Number.isInteger(id) || id < 1) {
+            return res.status(404).json({
+                ok: false,
+                error: "Pedido no encontrado."
+            });
+        }
+
+        // Comprobar que el estado esté permitido
+        if (!ESTADOS.includes(estado)) {
+            return res.status(400).json({
+                ok: false,
+                error: "El estado no es válido."
+            });
+        }
+
+        // Verificar que exista el pedido
+        const [pedidos] = await db.execute(
+            "SELECT id FROM pedidos WHERE id = ?",
+            [id]
+        );
+
+        if (!pedidos.length) {
+            return res.status(404).json({
+                ok: false,
+                error: "Pedido no encontrado."
+            });
+        }
+
+        // Actualizar únicamente el estado
+        await db.execute(
+            "UPDATE pedidos SET estado = ? WHERE id = ?",
+            [estado, id]
+        );
+
+        res.json({ ok: true });
+
+    } catch (err) {
+        fallo(err, res, next);
+    }
+}
+
+// ELIMINAR PEDIDO Y DEVOLVER STOCK
 async function eliminar(req, res, next) {
+    let conn;
+
     try {
         const id = Number(req.params.id);
 
@@ -424,29 +672,94 @@ async function eliminar(req, res, next) {
             });
         }
 
-        const [r] = await db.execute(
-            "DELETE FROM pedidos WHERE id = ?",
+        conn = await db.getConnection();
+        await conn.beginTransaction();
+
+        // Bloquear el pedido
+        const [pedidos] = await conn.execute(
+            `SELECT id, stock_actualizado
+             FROM pedidos
+             WHERE id = ?
+             FOR UPDATE`,
             [id]
         );
 
-        if (r.affectedRows === 0) {
+        if (!pedidos.length) {
+            await conn.rollback();
+
             return res.status(404).json({
                 ok: false,
                 error: "Pedido no encontrado."
             });
         }
 
+        // Obtener los productos del pedido
+        const [items] = await conn.execute(
+            `SELECT producto_id, cantidad
+             FROM pedido_items
+             WHERE pedido_id = ?`,
+            [id]
+        );
+
+        // Devolver las cantidades únicamente si se habían descontado
+        if (Number(pedidos[0].stock_actualizado) === 1) {
+            const cantidades = agruparCantidades(
+                items.map(i => ({
+                    producto_id: Number(i.producto_id),
+                    cantidad: Number(i.cantidad)
+                }))
+            );
+
+            const devoluciones = new Map();
+
+            for (const [productoId, cantidad] of cantidades) {
+                devoluciones.set(productoId, -cantidad);
+            }
+
+            await ajustarStock(conn, devoluciones, new Map());
+        }
+
+        // Eliminar primero los productos del pedido
+        await conn.execute(
+            "DELETE FROM pedido_items WHERE pedido_id = ?",
+            [id]
+        );
+
+        // Eliminar el pedido
+        await conn.execute(
+            "DELETE FROM pedidos WHERE id = ?",
+            [id]
+        );
+
+        await conn.commit();
+
         res.json({ ok: true });
     } catch (err) {
+        if (conn) {
+            await conn.rollback().catch(() => {});
+        }
+
+        if (err.status) {
+            return res.status(err.status).json({
+                ok: false,
+                error: err.message
+            });
+        }
+
         fallo(err, res, next);
+    } finally {
+        if (conn) {
+            conn.release();
+        }
     }
 }
 
-// Exportar las funciones para utilizarlas desde las rutas
+// Exportar las funciones del controlador
 module.exports = {
     listar: listar,
     obtener: obtener,
     crear: crear,
     modificar: modificar,
-    eliminar: eliminar
+    eliminar: eliminar,
+    actualizarEstado: actualizarEstado
 };

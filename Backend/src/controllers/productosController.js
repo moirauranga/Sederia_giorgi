@@ -6,15 +6,16 @@ async function listar(req, res, next) {
     try {
         // Consultamos los productos junto con sus colores y precios
         const [filas] = await db.execute(
-            `SELECT
-                p.productonombre AS nombre,
-                pc.id AS idcolor,
-                pc.color,
-                pc.precio
-             FROM productos p
-             INNER JOIN producto_color pc
-                ON p.idproducto = pc.idproducto
-             ORDER BY p.productonombre, pc.color`
+         `SELECT
+            p.productonombre AS nombre,
+            pc.id AS idcolor,
+            pc.color,
+            pc.precio
+        FROM productos p
+        INNER JOIN producto_color pc
+            ON p.idproducto = pc.idproducto
+        WHERE pc.activo = 1
+        ORDER BY p.productonombre, pc.color`
         );
 
         // Creamos una lista para agrupar los colores por producto

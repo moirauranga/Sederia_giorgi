@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <title>Agregar stock · Sedería Georgi</title>
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<div id="app">
+
+  <!-- MENÚ LATERAL -->
+  <aside class="sidebar">
+
+    <div class="logo-box">
+      <img class="logo-img" src="imagenes/sederia.jpeg" alt="Sedería Georgi">
+    </div>
+
+    <nav class="nav">
+
+      <a href="dashboard.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/>
+        </svg>
+        <span>Inicio</span>
+      </a>
+
+      <a href="clientes.html">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>
+        </svg>
+        <span>Clientes</span>
+      </a>
+
+      <a href="pedidos.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 4h3l2.5 11h10l2-8H7"/>
+          <circle cx="10" cy="19" r="1.5"/>
+          <circle cx="17" cy="19" r="1.5"/>
+        </svg>
+        <span>Pedidos</span>
+      </a>
+
+      <a href="crearPedido.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M6 3h8l4 4v14H6zM14 3v4h4M12 11v6M9 14h6"/>
+        </svg>
+        <span>Crear pedido</span>
+      </a>
+
+      <a href="proveedores.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M2 6h12v10H2zM14 9h4l4 4v3h-8"/>
+          <circle cx="6" cy="18" r="2"/>
+          <circle cx="17" cy="18" r="2"/>
+        </svg>
+        <span>Proveedores</span>
+      </a>
+
+      <a href="stock.html" class="on">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10"/>
+        </svg>
+        <span>Stock</span>
+      </a>
+
+    </nav>
+
+    <button class="cfg" id="cfgBtn">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2L10 21h4l.6-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/>
+      </svg>
+      <span>Configuración</span>
+    </button>
+
+  </aside>
+
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="main">
+
+    <!-- ENCABEZADO -->
+    <header class="top">
+
+      <div>
+        <h2 id="pageTitle">Agregar stock</h2>
+        <p>Registrar telas y entradas de mercadería</p>
+      </div>
+
+      <div class="user">
+
+        <span>🔔</span>
+
+        <div>
+          <span id="uName"></span>
+          <small id="uRole"></small>
+        </div>
+
+        <button class="act" id="logout">Salir</button>
+
+      </div>
+
+    </header>
+
+
+    <!-- CONTENIDO -->
+    <div class="content">
+
+      <section class="view on">
+
+        <!-- FORMULARIO -->
+        <form class="form" id="formStock">
+
+          <h3>Datos de la tela</h3>
+
+          <p>
+            Podés elegir una tela existente o registrar una nueva.
+            La cantidad ingresada se sumará al stock disponible.
+          </p>
+
+
+          <!-- MODO DE INGRESO -->
+          <div class="grid g2">
+
+            <div class="field">
+
+              <label for="modoTela">¿Qué querés hacer?</label>
+
+              <select id="modoTela" name="modoTela" class="input" required>
+
+                <option value="existente">
+                  Agregar metros a una tela existente
+                </option>
+
+                <option value="nueva">
+                  Registrar una tela nueva
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <!-- TELA EXISTENTE -->
+            <div id="contenedorExistente" class="field">
+
+              <label for="productoExistente">Tela y color existentes</label>
+
+              <select id="productoExistente" name="productoExistente" class="input">
+
+                <option value="">Cargando telas...</option>
+
+              </select>
+
+            </div>
+
+
+            <!-- NOMBRE DE TELA NUEVA -->
+            <div id="contenedorNombre" class="field" hidden>
+
+              <label for="nombreTela">Nombre de la tela</label>
+
+              <input
+                class="input"
+                id="nombreTela"
+                name="nombreTela"
+                type="text"
+                maxlength="45"
+                placeholder="Ej. Algodón"
+              >
+
+            </div>
+
+
+            <!-- COLOR -->
+            <div id="contenedorColor" class="field" hidden>
+
+              <label for="colorTela">Color</label>
+
+              <input
+                class="input"
+                id="colorTela"
+                name="colorTela"
+                type="text"
+                maxlength="50"
+                placeholder="Ej. Blanco"
+              >
+
+            </div>
+
+
+            <!-- PROVEEDOR -->
+            <div class="field">
+
+              <label for="proveedor">Proveedor</label>
+
+              <select id="proveedor" name="proveedor" class="input" required>
+
+                <option value="">Cargando proveedores...</option>
+
+              </select>
+
+            </div>
+
+
+            <!-- PRECIO -->
+            <div id="contenedorPrecio" class="field" hidden>
+
+              <label for="precioUnitario">Precio unitario ($)</label>
+
+              <input
+                class="input"
+                id="precioUnitario"
+                name="precioUnitario"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Ej. 3500.00"
+              >
+
+            </div>
+
+
+            <!-- STOCK INICIAL -->
+            <div id="contenedorStockInicial" class="field" hidden>
+
+              <label for="stockInicial">Stock inicial (metros)</label>
+
+              <input
+                class="input"
+                id="stockInicial"
+                name="stockInicial"
+                type="number"
+                min="0"
+                step="0.01"
+                value="0"
+              >
+
+            </div>
+
+
+            <!-- CANTIDAD A INGRESAR -->
+            <div class="field">
+
+              <label for="cantidad">Cantidad que agregás (metros)</label>
+
+              <input
+                class="input"
+                id="cantidad"
+                name="cantidad"
+                type="number"
+                min="0.01"
+                step="0.01"
+                required
+                placeholder="Ej. 5.50"
+              >
+
+            </div>
+
+          </div>
+
+
+          <!-- MENSAJE -->
+          <p id="stockMensaje" role="status"></p>
+
+
+          <!-- BOTONES -->
+          <div class="actions">
+
+            <button
+              type="submit"
+              class="btn"
+              id="btnGuardarStock"
+            >
+              Guardar ingreso
+            </button>
+
+            <button
+              type="reset"
+              class="btn ghost"
+            >
+              Limpiar
+            </button>
+
+          </div>
+
+        </form>
+
+      </section>
+
+    </div>
+
+  </main>
+
+</div>
+
+
+<!-- ARCHIVOS JAVASCRIPT -->
+<script src="js/api.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/stockAgregar.js"></script>
+
+</body>
+</html>

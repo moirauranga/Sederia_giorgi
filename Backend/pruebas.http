@@ -1,12 +1,19 @@
-### Pruebas de la API con la extensión "REST Client" de VS Code
-### (en cada bloque aparece un link "Send Request" arriba de la línea GET/POST/DELETE)
+
+### Pruebas de la API con REST Client de VS Code
 
 @url = http://localhost:3000/api
 
-### 1. Comprobar que el servidor anda
+### =====================================
+### 1. COMPROBAR SERVIDOR
+### =====================================
+
 GET {{url}}/health
 
-### 2. Login (copiá el "token" de la respuesta y pegalo en la variable de abajo)
+
+### =====================================
+### 2. LOGIN
+### =====================================
+
 POST {{url}}/auth/login
 Content-Type: application/json
 
@@ -15,12 +22,18 @@ Content-Type: application/json
   "password": "MiClave123"
 }
 
-### Pegá acá el token que devolvió el login
-@token = PEGAR_TOKEN_AQUI
+### Copiar el token de la respuesta y pegarlo acá
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibm9tYnJlIjoiTWFyaXRhIEhhZCIsInJvbCI6IkFkbWluaXN0cmFkb3JhIiwiaWF0IjoxNzkzNDY5NzE3LCJleHAiOjE3OTM0OTg1MTd9.0X_xbDJnV374QRjU7YvyULDE7wnLRzYjjNOhmJyIvDo
+
+
+### =====================================
+### CLIENTES
+### =====================================
 
 ### 3. Listar clientes
 GET {{url}}/clientes
 Authorization: Bearer {{token}}
+
 
 ### 4. Crear cliente
 POST {{url}}/clientes
@@ -39,9 +52,63 @@ Authorization: Bearer {{token}}
   "obs": "Cliente de prueba"
 }
 
-### 5. Eliminar cliente (cambiá el 1 por el id que quieras borrar)
+
+### 5. Eliminar cliente
 DELETE {{url}}/clientes/1
 Authorization: Bearer {{token}}
 
-### 6. Sin token → tiene que devolver 401
+
+### 6. Probar clientes sin token
 GET {{url}}/clientes
+
+
+### =====================================
+### PROVEEDORES
+### =====================================
+
+### 7. Listar proveedores
+GET {{url}}/proveedores
+Authorization: Bearer {{token}}
+
+
+### 8. Crear proveedor
+POST {{url}}/proveedores
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombre": "Distribuidora Textil",
+  "telefono": "2364123456",
+  "email": "distribuidora@mail.com",
+  "cuit": "30712345678",
+  "calle": "San Martín",
+  "numero": "350",
+  "localidad": "Junín",
+  "obs": "Proveedor de telas"
+}
+
+
+### 9. Modificar proveedor
+PUT {{url}}/proveedores/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombre": "Distribuidora Textil Actualizada",
+  "telefono": "2364987654",
+  "email": "contacto@mail.com",
+  "cuit": "30712345678",
+  "calle": "San Martín",
+  "numero": "350",
+  "localidad": "Junín",
+  "obs": "Proveedor actualizado"
+}
+
+
+### 10. Eliminar proveedor
+DELETE {{url}}/proveedores/1
+Authorization: Bearer {{token}}
+
+
+### 11. Probar proveedores sin token
+GET {{url}}/proveedores

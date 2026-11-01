@@ -325,13 +325,13 @@ textarea {
 
 .top h2 {
   margin: 0;
-  font-size: 17px;
+  font-size: 24px;
   font-weight: 600;
 }
 
 .top p {
   margin: 2px 0 0;
-  font-size: 11px;
+  font-size: 16px;
   color: var(--muted);
 }
 
@@ -900,3 +900,192 @@ td {
     color-scheme: dark;
   }
 }
+
+
+/* =====================================
+   DASHBOARD - DISEÑO VISUAL
+===================================== */
+
+/* Bienvenida */
+.welcome {
+    background: linear-gradient(120deg, #F7E6E6, #F5EDE4);
+    border-radius: 14px;
+    padding: 25px 30px;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.welcome h2 {
+    margin: 0 0 8px;
+    color: #754B50;
+    font-size: 21px;
+    font-weight: 600;
+}
+
+.welcome p {
+    margin: 0;
+    color: #896C6F;
+    font-size: 14px;
+}
+
+.welcome-icon {
+    font-size: 42px;
+    color: #C17E87;
+    padding-right: 10px;
+}
+
+/* Tarjetas de estadísticas */
+.dashboard-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.dashboard-stats .stat {
+    min-height: 145px;
+    padding: 20px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid rgba(120, 80, 80, 0.08);
+    box-shadow: 0 3px 12px rgba(80, 50, 50, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-stats .stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(80, 50, 50, 0.09);
+}
+
+/* Colores de las tarjetas */
+.dashboard-stats .stat-clientes {
+    background: #F8E8E8;
+}
+
+.dashboard-stats .stat-pedidos {
+    background: #F5EBDD;
+}
+
+.dashboard-stats .stat-pedidos-mes {
+    background: #F1E9F0;
+}
+
+.dashboard-stats .stat-alertas {
+    background: #F6E9E1;
+}
+
+/* Íconos */
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.55);
+    color: #9D6870;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+}
+
+.dashboard-stats .stat-info span {
+    font-size: 13px;
+    color: #755D5D;
+    line-height: 1.4;
+}
+
+.dashboard-stats .stat-info strong {
+    font-size: 32px;
+    line-height: 1;
+    color: #593F42;
+    font-weight: 700;
+}
+
+/* Título de la tabla */
+.dashboard-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0 16px;
+}
+
+.dashboard-section-title h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #594447;
+}
+
+.dashboard-section-title p {
+    margin: 0;
+    font-size: 13px;
+    color: #917B7B;
+}
+
+.section-icon {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: #F5E8E6;
+    color: #A66D74;
+    font-size: 23px;
+}
+
+/* Tabla de próximos pedidos */
+.dashboard-table {
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 5px 15px;
+    box-shadow: 0 3px 12px rgba(80, 50, 50, 0.05);
+    border: 1px solid #F0E8E5;
+    overflow-x: auto;
+}
+
+/* Adaptación a pantallas medianas */
+@media (max-width: 1200px) {
+    .dashboard-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Adaptación a celulares */
+@media (max-width: 600px) {
+    .welcome {
+        padding: 20px;
+    }
+
+    .welcome h2 {
+        font-size: 18px;
+    }
+
+    .welcome-icon {
+        font-size: 32px;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .dashboard-stats .stat {
+        min-height: 110px;
+    }
+
+    .dashboard-section-title h3 {
+        font-size: 16px;
+    }
+  }

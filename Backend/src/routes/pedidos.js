@@ -17,6 +17,9 @@ router.get("/:id", pedidosController.obtener);
 // Crear un pedido
 router.post("/", pedidosController.crear);
 
+// Modificar solamente el estado de un pedido
+router.patch("/:id/estado", pedidosController.actualizarEstado);
+
 // Modificar un pedido
 router.put("/:id", pedidosController.modificar);
 

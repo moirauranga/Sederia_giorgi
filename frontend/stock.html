@@ -1,36 +1,320 @@
+
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Stock · Sedería Georgi</title>
-<link rel="stylesheet" href="css/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <title>Stock · Sedería Georgi</title>
+
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+
+    /* Tabla de stock */
+    .stock-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 18px;
+    }
+
+    .stock-table th,
+    .stock-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .stock-table th {
+      font-weight: 600;
+    }
+
+    /* Mensajes */
+    .stock-mensaje {
+      margin-top: 12px;
+    }
+
+    /* Permitir desplazamiento horizontal en pantallas pequeñas */
+    .stock-tabla-contenedor {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    /* Texto de ayuda */
+    .stock-ayuda {
+      margin-top: 8px;
+      color: #666;
+    }
+
+    /* Encabezado y botón para agregar stock */
+    .stock-encabezado {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .stock-encabezado h3 {
+      margin: 0;
+    }
+
+    .stock-agregar {
+      display: inline-block;
+      padding: 10px 16px;
+      background-color: #d98b93;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+
+    .stock-agregar:hover {
+      background-color: #c6757e;
+    }
+
+    /* Buscador */
+    .stock-buscador {
+      width: 100%;
+      max-width: 350px;
+      padding: 10px 12px;
+      margin: 15px 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    /* Estados del stock */
+    .stock-estado {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .stock-disponible {
+      background: #e5f3e8;
+      color: #267342;
+    }
+
+    .stock-sin-stock {
+      background: #fce8e8;
+      color: #b42318;
+    }
+
+    /* Adaptación a pantallas pequeñas */
+    @media (max-width: 600px) {
+
+      .stock-table th,
+      .stock-table td {
+        padding: 9px 6px;
+      }
+
+      .stock-encabezado {
+        align-items: flex-start;
+      }
+
+    }
+
+  </style>
+
 </head>
+
 <body>
+
 <div id="app">
+
+  <!-- Menú lateral -->
   <aside class="sidebar">
-    <div class="logo-box"><img class="logo-img" src="imagenes/sederia.jpeg" alt="Sedería Georgi"></div>
-    <nav class="nav">
-      <a href="dashboard.html"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg><span>Inicio</span></a>
-      <a href="clientes.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>Clientes</span></a>
-      <a href="pedidos.html"><svg viewBox="0 0 24 24"><path d="M3 4h3l2.5 11h10l2-8H7"/><circle cx="10" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg><span>Pedidos</span></a>
-      <a href="crearPedido.html"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v4h4M12 11v6M9 14h6"/></svg><span>Crear pedido</span></a>
-      <a href="proveedores.html"><svg viewBox="0 0 24 24"><path d="M2 6h12v10H2zM14 9h4l4 4v3h-8"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg><span>Proveedores</span></a>
-      <a href="stock.html" class="on"><svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10"/></svg><span>Stock</span></a>
-    </nav>
-    <button class="cfg" id="cfgBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2L10 21h4l.6-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg><span>Configuración</span></button>
-  </aside>
-  <main class="main">
-    <header class="top">
-      <div><h2 id="pageTitle">Stock</h2><p>Próximamente</p></div>
-      <div class="user"><span>🔔</span><div><span id="uName"></span><small id="uRole"></small></div><button class="act" id="logout">Salir</button></div>
-    </header>
-    <div class="content">
-      <section class="view on"><div class="panel empty">Esta sección estará disponible próximamente.</div></section>
+
+    <div class="logo-box">
+      <img
+        class="logo-img"
+        src="imagenes/sederia.jpeg"
+        alt="Sedería Georgi"
+      >
     </div>
+
+    <nav class="nav">
+
+      <a href="dashboard.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/>
+        </svg>
+        <span>Inicio</span>
+      </a>
+
+      <a href="clientes.html">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>
+        </svg>
+        <span>Clientes</span>
+      </a>
+
+      <a href="pedidos.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 4h3l2.5 11h10l2-8H7"/>
+          <circle cx="10" cy="19" r="1.5"/>
+          <circle cx="17" cy="19" r="1.5"/>
+        </svg>
+        <span>Pedidos</span>
+      </a>
+
+      <a href="crearPedido.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M6 3h8l4 4v14H6zM14 3v4h4M12 11v6M9 14h6"/>
+        </svg>
+        <span>Crear pedido</span>
+      </a>
+
+      <a href="proveedores.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M2 6h12v10H2zM14 9h4l4 4v3h-8"/>
+          <circle cx="6" cy="18" r="2"/>
+          <circle cx="17" cy="18" r="2"/>
+        </svg>
+        <span>Proveedores</span>
+      </a>
+
+      <a href="stock.html" class="on">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10"/>
+        </svg>
+        <span>Stock</span>
+      </a>
+
+    </nav>
+
+    <!-- Configuración -->
+    <button class="cfg" id="cfgBtn">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2L10 21h4l.6-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/>
+      </svg>
+      <span>Configuración</span>
+    </button>
+
+  </aside>
+
+  <!-- Contenido principal -->
+  <main class="main">
+
+    <!-- Encabezado -->
+    <header class="top">
+
+      <div>
+        <h2 id="pageTitle">Stock</h2>
+        <p>Control de metros disponibles</p>
+      </div>
+
+      <div class="user">
+
+        <span>🔔</span>
+
+        <div>
+          <span id="uName"></span>
+          <small id="uRole"></small>
+        </div>
+
+        <button class="act" id="logout">
+          Salir
+        </button>
+
+      </div>
+
+    </header>
+
+    <!-- Contenido de la página -->
+    <div class="content">
+
+      <section class="view on">
+
+        <div class="panel">
+
+          <!-- Título y botón para agregar stock -->
+          <div class="stock-encabezado">
+
+            <h3>Stock de telas</h3>
+
+            <a href="stockAgregar.html" class="stock-agregar">
+              + Agregar stock
+            </a>
+
+          </div>
+
+          <!-- Explicación -->
+          <p class="stock-ayuda">
+            Consultá los metros disponibles de cada tela y color.
+            Al guardar un pedido, el sistema descontará automáticamente
+            los metros utilizados.
+          </p>
+
+          <!-- Buscador -->
+          <input
+            type="search"
+            id="stockBuscar"
+            class="stock-buscador"
+            placeholder="Buscar por tela o color..."
+            aria-label="Buscar por tela o color"
+          >
+
+          <!-- Mensajes -->
+          <p
+            id="stockMensaje"
+            class="stock-mensaje"
+            role="status"
+          ></p>
+
+          <!-- Tabla -->
+          <div class="stock-tabla-contenedor">
+
+            <table class="stock-table">
+
+              <thead>
+                <tr>
+                  <th>Tela</th>
+                  <th>Color</th>
+                  <th>Metros disponibles</th>
+                  <th>Precio por metro</th>
+                  <th>Último proveedor</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+
+              <tbody id="stockBody">
+
+                <tr>
+                  <td colspan="6">
+                    Cargando stock...
+                  </td>
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
   </main>
+
 </div>
+
+<!-- Archivos JavaScript -->
 <script src="js/api.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/stock.js"></script>
+
 </body>
 </html>
